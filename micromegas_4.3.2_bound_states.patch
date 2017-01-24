@@ -1,0 +1,92 @@
+--- micromegas_4.3.2/sources/omega.c
++++ micromegas_4.3.2/sources/omega_bound_states.c
+@@ -259,6 +259,29 @@
+    res0=sqrt(2*y/M_PI)*y*(PcmIn*PcmIn/(Mcdm*Mcdm))*sv_tot*6*u*z*z;
+    
+    if(exi) { return res0*weight(sqrtS/Mcdm); } else return  res0*K1pol(T_/sqrtS)*sqrt(Mcdm/T_);
++}
++
++double s_integrand_BSF(double u, Parameters pars)
++{  double z,y,sv_tot,w;
++    double Xf_1;
++    double ms,md,sqrtS,PcmIn,res0;
++
++    if(u==0. || u==1.) return 0.;
++
++    z=1-u*u;
++    sqrtS=M1+M2-3*T_*log(z);
++    y=sqrtS/Mcdm;
++    ms = M1 + M2;  if(ms>=sqrtS)  return 0;
++    md = M1 - M2;
++    PcmIn = sqrt((sqrtS-ms)*(sqrtS+ms)*(sqrtS-md)*(sqrtS+md))/(2*sqrtS);
++    double vrel = 2 * PcmIn/sqrt(pow(PcmIn, 2) + pow(pars.m, 2));
++    double uu = 0.25 * pow(vrel, 2) * pars.m/T_;
++    pars.T = T_;
++    sv_tot=sigmaStimulatedBSF(uu, pars);
++    
++    res0=sqrt(2*y/M_PI)*y*(PcmIn*PcmIn/(Mcdm*Mcdm))*sv_tot*6*u*z*z;
++
++    if(exi) { return res0*weight(sqrtS/Mcdm); } else return  res0*K1pol(T_/sqrtS)*sqrt(Mcdm/T_);
+ }
+ 
+ static int Npow;
+@@ -899,6 +922,10 @@
+       }
+     }
+     factor=inC0[k1*NC+k2]*inG[k1]*inG[k2]*exp(-(M1+M2 -2*Mcdm)/T_);
++    double factor_add = 0.0;
++    #ifdef IMPROVE
++	  factor_add = improveAveragedCrossSection(inNum[k1], inNum[k2], Mcdm, T_);
++	#endif  
+     CI=code22_0[k1*NC+k2]->interface;
+     AUX=code22Aux0[k1*NC+k2];
+     for(nsub22=1; nsub22<= CI->nprc;nsub22++,nPrc++)
+@@ -1106,7 +1133,7 @@
+       Sumkk+=a;
+       if(wPrc) (*wPrc)[nPrc].weight = a*factor;
+     }
+-    Sum+=factor*Sumkk;
++    Sum+=factor*Sumkk + factor * factor_add;
+     Sum1+=factor*Sum1kk;
+     
+ /*
+
+
+--- micromegas_4.3.2/sources/dummy.c
++++ micromegas_4.3.2/sources/dummy_bound_states.c
+@@ -1,5 +1,6 @@
+ #include "micromegas.h"
+ #include "micromegas_aux.h"
+ 
+-void improveCrossSection(long n1,long n2,long n3,long n4 ,double PcmIn, 
+-double * res) { return; }
++void improveCrossSection(long n1,long n2,long n3,long n4 ,double PcmIn, double * res) { return; }
++double improveAveragedCrossSection(long n1, long n2, double mdm, double T) { return 0.0; }
++double sigmaStimulatedBSF(double u, Parameters pars) { return 0.0; }
+
+
+--- micromegas_4.3.2/include/micromegas.h
++++ micromegas_4.3.2/include/micromegas_bound_states.h
+@@ -206,10 +206,21 @@
+ extern double Y2F(double T);
+ extern double YF(double T);
+ 
++typedef struct
++{
++    int spin;
++    int color;
++    double m;
++    double T;
++} Parameters;
++
+ extern double darkOmegaFO(double *Xf,int fast,double Beps);
+ extern double printChannels(double Xf,double cut,double Beps,int prcnt,FILE *f );   
+ extern double oneChannel(double Xf,double Beps,char*n1,char*n2,char*n3,char*n4);
+ extern void improveCrossSection(long n1,long n2,long n3,long n4,double Pcm, double * addr);
++extern double improveAveragedCrossSection(long n1, long n2, double mdm, double T);
++extern double sigmaStimulatedBSF(double u, Parameters pars);
++extern double s_integrand_BSF(double u, Parameters pars);
+ 
+ extern double Yeq(double T);
+ extern double Yeq1(double T);
+
