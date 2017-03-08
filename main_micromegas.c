@@ -192,7 +192,7 @@ void improveCrossSection(long n1, long n2, long n3, long n4, double pin, double 
 	double m2 = pMass(pdg2name(n2));
 	double m = (m1 + m2) / 2.0;
 	if (m1 != m2)
-		printf("WARNING: masses of incoming particles are are not equal: %f and %f", m1, m2);
+		printf("WARNING: masses of incoming particles are are not equal: %f and %f\n", m1, m2);
 
 	// Calculate beta and s.
 	double v = pin / sqrt(pow(pin, 2.0) + pow(m1, 2.0));
@@ -207,9 +207,9 @@ void improveCrossSection(long n1, long n2, long n3, long n4, double pin, double 
 	long color_x = color(n1);
 	long spin_x = spin(n1);
 	if (color_x != 3 && color_x != 6 && color_x != 8)
-		printf("color of x is invalid: %d", (int)color_x);
+		printf("color of x is invalid: %d\n", (int)color_x);
 	if (spin_x < 1 || spin_x > 6)
-		printf("spin of x is invalid: %d", (int)spin_x);
+		printf("spin of x is invalid: %d\n", (int)spin_x);
 
 	// Add sommerfeld factor for XX -> qq.
 	if (abs(n1) == abs(n2) && abs(n3) >= 1 && abs(n3) <= 6 && abs(n4) >= 1 && abs(n4) <= 6)
@@ -274,14 +274,14 @@ void improveCrossSection(long n1, long n2, long n3, long n4, double pin, double 
 
 long color(long pdg)
 {
-	// The color is coded in the last digit of the PDG number.
+	// The color is coded in the last two digits of the PDG number.
 	return abs(pdg) % 100;
 }
 
 long spin(long pdg)
 {
 	// The spin is coded in the 3rd to last digit of the PDG number.
-	return abs(pdg / 100) % 100;
+	return abs(pdg / 100) % 10;
 }
 
 double casimir2(int color)
